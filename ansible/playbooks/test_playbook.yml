@@ -1,0 +1,12 @@
+---
+
+- name: Test playbook
+  hosts: "swarmrole_worker"
+  gather_facts: no
+  tasks:
+
+    - name: Run uname command
+      shell: uname -a
+      register: uname_out
+    
+    - debug: msg={{ uname_out }}

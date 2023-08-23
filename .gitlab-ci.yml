@@ -1,0 +1,55 @@
+
+
+stages:
+  - test-ansible
+
+.debian_install_tools:
+  - apt-get update && apt-get install --no-install-recommends -y curl unzip jq && rm -rf /var/lib/apt/lists/*
+
+.install_aws_cli_v2:
+  - curl -s https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+  - unzip -qqq awscliv2.zip
+  - ./aws/install
+
+.install_python_libraries:
+  - pip3 install boto3
+  - pip3 install botocore
+  #- ansible-galaxy collection install amazon.aws:==5.1.0
+
+.aws_ssh:
+  - set -eu
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$AWS_SSH_DEPLOYER_KEY" | base64 -d)
+  - mkdir -p ~/.ssh
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+.aws-base:
+  image:
+    name: git-registry.omilia.com/automation/templates/willhallonline/ansible:2.13.7-bullseye-slim
+  before_script:
+    - !reference [.debian_install_tools]
+    - !reference [.install_aws_cli_v2]
+    - !reference [.install_python_libraries]
+    - !reference [.aws_ssh]
+
+.ansible_scripts:
+  assume_role_descibe_instances:
+    - assume_role_output=$(aws sts assume-role --role-arn "arn:aws:iam::793251715746:role/mapps-dev-eu-west-1-describe-instances-from-gitlab-role" --role-session-name AWSCLI-Session)
+    - export AWS_ACCESS_KEY_ID=$(echo "$assume_role_output" | jq -r .Credentials.AccessKeyId)
+    - export AWS_SECRET_ACCESS_KEY=$(echo "$assume_role_output" | jq -r .Credentials.SecretAccessKey)
+    - export AWS_SESSION_TOKEN=$(echo "$assume_role_output" | jq -r .Credentials.SessionToken)
+    - aws sts get-caller-identity
+  dynamic_inventory_scripts:
+    - cd ansible/
+    - export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+    - ansible-inventory -i inventory/aws_dev_workers.aws_ec2.yaml --graph
+    - ansible-playbook playbooks/test_playbook.yml -i inventory/aws_dev_workers.aws_ec2.yaml
+
+dynamic-inventory-tests:
+  extends: 
+    - .aws-base
+  stage: test-ansible
+  script:
+    - aws --version
+    - !reference [.ansible_scripts, assume_role_descibe_instances]
+    - !reference [.ansible_scripts, dynamic_inventory_scripts]

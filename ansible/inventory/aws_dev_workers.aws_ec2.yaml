@@ -1,0 +1,26 @@
+---
+plugin: amazon.aws.aws_ec2
+aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+aws_session_token: "{{ lookup('env', 'AWS_SESSION_TOKEN') }}"
+regions:
+  - eu-west-1 #{{ region }}
+filters:
+  #All instances with their `Name` tag set to mapps-dev-miniapps-swarm-worker
+  tag:Name: mapps-dev-miniapps-swarm-worker # {{ environment_name }}
+
+hostnames:
+  - tag:Name
+
+allow_duplicated_hosts: False
+
+keyed_groups:
+  - key: tags.OcpEnv
+    prefix: env
+  - key: tags.SwarmRole
+    prefix: swarmrole
+  - key: placement.region
+    prefix: aws_region
+
+compose:
+  ansible_host: private_ip_address #Use private ip when communicating with hosts
