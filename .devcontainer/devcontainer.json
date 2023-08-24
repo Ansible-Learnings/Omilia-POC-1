@@ -7,6 +7,9 @@
     // Update 'VARIANT' to pick an Ubuntu version: focal, bionic
     "args": { "VARIANT": "bionic" }
   },
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
 
   // Set *default* container specific settings.json values on container create.
   "settings": {
@@ -19,7 +22,8 @@
     "2gua.rainbow-brackets",
     "oderwat.indent-rainbow",
     "emeraldwalk.runonsave"
-  ],
+  ]
+}},
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
@@ -29,10 +33,10 @@
 
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   // "remoteUser": "vscode",
-  // "mounts": [
-  //   "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws/,target=/root/.aws/,type=bind,consistency=cached",
-  //   "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh/,target=/root/.ssh/,type=bind,consistency=cached",
+  "mounts": [
+    "source=C:/Users/AbdulBasha/.aws/,target=/home/vscode/.aws/,type=bind,consistency=cached",
+    "source=C:/Users/AbdulBasha/.ssh/,target=/home/vscode/.ssh/,type=bind,consistency=cached"
   //   "source=${localEnv:HOME}${localEnv:USERPROFILE}/.anypoint/,target=/root/.anypoint/,type=bind,consistency=cached",
   //   "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gh/,target=/root/.gh/,type=bind,consistency=cached"
-  // ]
+  ]
 }
